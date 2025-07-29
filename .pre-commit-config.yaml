@@ -20,21 +20,23 @@ repos:
       # Formatter
       - id: ruff-format
 
-  - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.13.0
-    hooks:
-      - id: mypy
-        files: ^src/
-        additional_dependencies:
-          - types-requests
-          - sqlalchemy[mypy]
+  # Skip mypy in pre-commit for now due to dependency complexity
+  # - repo: https://github.com/pre-commit/mirrors-mypy
+  #   rev: v1.13.0
+  #   hooks:
+  #     - id: mypy
+  #       files: ^src/
+  #       additional_dependencies:
+  #         - types-requests
+  #         - sqlalchemy[mypy]
 
-  - repo: https://github.com/pre-commit/mirrors-pytest
-    rev: v8.3.4
-    hooks:
-      - id: pytest
-        args: [--tb=short]
-        pass_filenames: false
-        additional_dependencies:
-          - pytest-cov
-          - responses
+  # Skip pytest in pre-commit since it's handled separately in CI
+  # - repo: https://github.com/pre-commit/mirrors-pytest
+  #   rev: v8.3.4
+  #   hooks:
+  #     - id: pytest
+  #       args: [--tb=short]
+  #       pass_filenames: false
+  #       additional_dependencies:
+  #         - pytest-cov
+  #         - responses

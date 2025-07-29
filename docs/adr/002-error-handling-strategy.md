@@ -7,7 +7,7 @@ Accepted
 The Readwise API can return various error conditions that need to be handled gracefully:
 - Authentication failures (401)
 - Rate limiting (429)
-- Not found errors (404) 
+- Not found errors (404)
 - Validation errors (400)
 - Server errors (5xx)
 - Network connectivity issues

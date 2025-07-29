@@ -14,6 +14,7 @@ from .models import Highlight
 @dataclass
 class DigestStats:
     """Statistics for a digest operation."""
+
     total_highlights: int
     total_books: int
     new_highlights: int
@@ -41,9 +42,11 @@ class DigestService:
         self.logger.info("Starting full highlights digest")
 
         try:
-            highlights = list(self.client.get_highlights(
-                updated_after=updated_after,
-            ))
+            highlights = list(
+                self.client.get_highlights(
+                    updated_after=updated_after,
+                )
+            )
 
             if include_books:
                 self._enrich_with_book_data(highlights)
@@ -77,19 +80,25 @@ class DigestService:
 
         try:
             if use_highlighted_at:
-                highlights = list(self.client.get_highlights(
-                    highlighted_after=cutoff_time,
-                ))
+                highlights = list(
+                    self.client.get_highlights(
+                        highlighted_after=cutoff_time,
+                    )
+                )
             else:
-                highlights = list(self.client.get_highlights(
-                    updated_after=cutoff_time,
-                ))
+                highlights = list(
+                    self.client.get_highlights(
+                        updated_after=cutoff_time,
+                    )
+                )
 
             if include_books:
                 self._enrich_with_book_data(highlights)
 
             execution_time = (datetime.now() - start_time).total_seconds()
-            self.logger.info(f"Retrieved {len(highlights)} recent highlights in {execution_time:.2f}s")
+            self.logger.info(
+                f"Retrieved {len(highlights)} recent highlights in {execution_time:.2f}s"
+            )
 
             return highlights
 
@@ -106,10 +115,12 @@ class DigestService:
         self.logger.info(f"Getting highlights for book {book_id}")
 
         try:
-            highlights = list(self.client.get_highlights(
-                book_id=book_id,
-                updated_after=updated_after,
-            ))
+            highlights = list(
+                self.client.get_highlights(
+                    book_id=book_id,
+                    updated_after=updated_after,
+                )
+            )
 
             self.logger.info(f"Retrieved {len(highlights)} highlights for book {book_id}")
             return highlights
@@ -142,7 +153,8 @@ class DigestService:
             highlights = self.get_all_highlights(include_books=True)
 
         source_highlights = [
-            h for h in highlights
+            h
+            for h in highlights
             if h.book and h.book.source and h.book.source.lower() == source.lower()
         ]
 
@@ -307,7 +319,9 @@ class DigestService:
                 "id": highlight.id,
                 "text": highlight.text,
                 "note": highlight.note,
-                "highlighted_at": highlight.highlighted_at.isoformat() if highlight.highlighted_at else None,
+                "highlighted_at": highlight.highlighted_at.isoformat()
+                if highlight.highlighted_at
+                else None,
                 "updated": highlight.updated.isoformat() if highlight.updated else None,
                 "url": highlight.url,
                 "book": {
@@ -315,7 +329,9 @@ class DigestService:
                     "title": highlight.book.title,
                     "author": highlight.book.author,
                     "source": highlight.book.source,
-                } if highlight.book else None,
+                }
+                if highlight.book
+                else None,
             }
             data["highlights"].append(highlight_data)
 
@@ -330,24 +346,35 @@ class DigestService:
         writer = csv.writer(output)
 
         # Write header
-        writer.writerow([
-            "id", "text", "note", "book_title", "book_author",
-            "book_source", "highlighted_at", "updated", "url",
-        ])
+        writer.writerow(
+            [
+                "id",
+                "text",
+                "note",
+                "book_title",
+                "book_author",
+                "book_source",
+                "highlighted_at",
+                "updated",
+                "url",
+            ]
+        )
 
         # Write data
         for highlight in highlights:
-            writer.writerow([
-                highlight.id,
-                highlight.text,
-                highlight.note,
-                highlight.book.title if highlight.book else "",
-                highlight.book.author if highlight.book else "",
-                highlight.book.source if highlight.book else "",
-                highlight.highlighted_at.isoformat() if highlight.highlighted_at else "",
-                highlight.updated.isoformat() if highlight.updated else "",
-                highlight.url or "",
-            ])
+            writer.writerow(
+                [
+                    highlight.id,
+                    highlight.text,
+                    highlight.note,
+                    highlight.book.title if highlight.book else "",
+                    highlight.book.author if highlight.book else "",
+                    highlight.book.source if highlight.book else "",
+                    highlight.highlighted_at.isoformat() if highlight.highlighted_at else "",
+                    highlight.updated.isoformat() if highlight.updated else "",
+                    highlight.url or "",
+                ]
+            )
 
         return output.getvalue()
 

@@ -121,9 +121,14 @@ def get_db_stats() -> dict:
         }
 
         # Get last sync info
-        last_sync = session.query(SyncStatus).filter(
-            SyncStatus.status == "completed",
-        ).order_by(SyncStatus.completed_at.desc()).first()
+        last_sync = (
+            session.query(SyncStatus)
+            .filter(
+                SyncStatus.status == "completed",
+            )
+            .order_by(SyncStatus.completed_at.desc())
+            .first()
+        )
 
         if last_sync:
             stats["last_sync"] = {

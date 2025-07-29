@@ -17,6 +17,7 @@ from .models import Highlight
 @dataclass
 class PollingConfig:
     """Configuration for the polling service."""
+
     interval_seconds: int = 300  # 5 minutes default
     max_retries: int = 3
     retry_backoff_factor: float = 2.0
@@ -119,7 +120,7 @@ class HighlightPoller:
                 self.logger.warning(
                     f"Found {len(highlights)} highlights, limiting to {self.config.max_highlights_per_poll}",
                 )
-                highlights = highlights[:self.config.max_highlights_per_poll]
+                highlights = highlights[: self.config.max_highlights_per_poll]
 
             # Create stats
             execution_time = (datetime.now() - start_time).total_seconds()
@@ -226,10 +227,13 @@ class HighlightPoller:
                     elif retry_count < self.config.max_retries:
                         # Exponential backoff for other errors
                         wait_time = min(
-                            self.config.interval_seconds * (self.config.retry_backoff_factor ** retry_count),
+                            self.config.interval_seconds
+                            * (self.config.retry_backoff_factor**retry_count),
                             300,  # Max 5 minutes
                         )
-                        self.logger.info(f"Retrying in {wait_time} seconds (attempt {retry_count}/{self.config.max_retries})")
+                        self.logger.info(
+                            f"Retrying in {wait_time} seconds (attempt {retry_count}/{self.config.max_retries})"
+                        )
                         if self._stop_event.wait(timeout=wait_time):
                             break
 

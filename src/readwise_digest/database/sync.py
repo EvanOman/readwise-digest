@@ -87,10 +87,14 @@ class DatabaseSync:
                 session.commit()
 
                 results["completed_at"] = sync_record.completed_at
-                results["duration"] = (sync_record.completed_at - sync_record.started_at).total_seconds()
+                results["duration"] = (
+                    sync_record.completed_at - sync_record.started_at
+                ).total_seconds()
 
-                logger.info(f"Full sync completed: {results['highlights_synced']} highlights, "
-                           f"{results['books_synced']} books, {results['tags_synced']} tags")
+                logger.info(
+                    f"Full sync completed: {results['highlights_synced']} highlights, "
+                    f"{results['books_synced']} books, {results['tags_synced']} tags"
+                )
 
                 return results
 
@@ -126,7 +130,8 @@ class DatabaseSync:
             try:
                 # Get recent highlights
                 recent_highlights = self.digest_service.get_recent_highlights(
-                    hours=hours, include_books=True,
+                    hours=hours,
+                    include_books=True,
                 )
 
                 results = {
@@ -171,9 +176,13 @@ class DatabaseSync:
                 session.commit()
 
                 results["completed_at"] = sync_record.completed_at
-                results["duration"] = (sync_record.completed_at - sync_record.started_at).total_seconds()
+                results["duration"] = (
+                    sync_record.completed_at - sync_record.started_at
+                ).total_seconds()
 
-                logger.info(f"Incremental sync completed: {results['highlights_synced']} highlights")
+                logger.info(
+                    f"Incremental sync completed: {results['highlights_synced']} highlights"
+                )
 
                 return results
 
@@ -193,9 +202,14 @@ class DatabaseSync:
             # Get updated_after timestamp if not forcing full sync
             updated_after = None
             if not force:
-                last_sync = session.query(SyncStatus).filter(
-                    and_(SyncStatus.status == "completed", SyncStatus.sync_type == "full"),
-                ).order_by(SyncStatus.completed_at.desc()).first()
+                last_sync = (
+                    session.query(SyncStatus)
+                    .filter(
+                        and_(SyncStatus.status == "completed", SyncStatus.sync_type == "full"),
+                    )
+                    .order_by(SyncStatus.completed_at.desc())
+                    .first()
+                )
 
                 if last_sync and last_sync.last_sync_timestamp:
                     updated_after = last_sync.last_sync_timestamp
@@ -228,9 +242,14 @@ class DatabaseSync:
             # Get updated_after timestamp if not forcing full sync
             updated_after = None
             if not force:
-                last_sync = session.query(SyncStatus).filter(
-                    and_(SyncStatus.status == "completed", SyncStatus.sync_type == "full"),
-                ).order_by(SyncStatus.completed_at.desc()).first()
+                last_sync = (
+                    session.query(SyncStatus)
+                    .filter(
+                        and_(SyncStatus.status == "completed", SyncStatus.sync_type == "full"),
+                    )
+                    .order_by(SyncStatus.completed_at.desc())
+                    .first()
+                )
 
                 if last_sync and last_sync.last_sync_timestamp:
                     updated_after = last_sync.last_sync_timestamp
@@ -249,7 +268,9 @@ class DatabaseSync:
                                 book_data = self.client.get_book(highlight_data.book_id)
                                 self._upsert_book(session, book_data)
                             except Exception as e:
-                                logger.warning(f"Could not fetch book {highlight_data.book_id}: {e}")
+                                logger.warning(
+                                    f"Could not fetch book {highlight_data.book_id}: {e}"
+                                )
 
                     self._upsert_highlight(session, highlight_data)
                     results["synced"] += 1
@@ -365,7 +386,9 @@ class DatabaseSync:
             highlight.text = highlight_data.text
             highlight.note = highlight_data.note
             highlight.location = highlight_data.location
-            highlight.location_type = highlight_data.location_type.value if highlight_data.location_type else None
+            highlight.location_type = (
+                highlight_data.location_type.value if highlight_data.location_type else None
+            )
             highlight.color = highlight_data.color
             highlight.url = highlight_data.url
             highlight.book_id = highlight_data.book_id
@@ -380,7 +403,9 @@ class DatabaseSync:
                 text=highlight_data.text,
                 note=highlight_data.note,
                 location=highlight_data.location,
-                location_type=highlight_data.location_type.value if highlight_data.location_type else None,
+                location_type=highlight_data.location_type.value
+                if highlight_data.location_type
+                else None,
                 color=highlight_data.color,
                 url=highlight_data.url,
                 book_id=highlight_data.book_id,
@@ -430,8 +455,8 @@ class DatabaseSync:
         # Remove markdown formatting
         # Remove bold/italic markers
         combined = re.sub(r"\*\*([^*]+)\*\*", r"\1", combined)  # **bold**
-        combined = re.sub(r"\*([^*]+)\*", r"\1", combined)      # *italic*
-        combined = re.sub(r"_([^_]+)_", r"\1", combined)        # _italic_
+        combined = re.sub(r"\*([^*]+)\*", r"\1", combined)  # *italic*
+        combined = re.sub(r"_([^_]+)_", r"\1", combined)  # _italic_
 
         # Remove links
         combined = re.sub(r"\[([^\]]+)\]\([^)]+\)", r"\1", combined)  # [text](url)
@@ -448,9 +473,14 @@ class DatabaseSync:
     def get_sync_history(self, limit: int = 10) -> list[dict[str, Any]]:
         """Get recent sync history."""
         with self.SessionLocal() as session:
-            syncs = session.query(SyncStatus).order_by(
-                SyncStatus.started_at.desc(),
-            ).limit(limit).all()
+            syncs = (
+                session.query(SyncStatus)
+                .order_by(
+                    SyncStatus.started_at.desc(),
+                )
+                .limit(limit)
+                .all()
+            )
 
             return [
                 {
@@ -459,7 +489,9 @@ class DatabaseSync:
                     "status": sync.status,
                     "started_at": sync.started_at,
                     "completed_at": sync.completed_at,
-                    "duration": (sync.completed_at - sync.started_at).total_seconds() if sync.completed_at else None,
+                    "duration": (sync.completed_at - sync.started_at).total_seconds()
+                    if sync.completed_at
+                    else None,
                     "highlights_synced": sync.highlights_synced,
                     "books_synced": sync.books_synced,
                     "tags_synced": sync.tags_synced,

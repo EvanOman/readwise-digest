@@ -37,6 +37,7 @@ book_tags = Table(
 
 class Book(Base):
     """Book/source model for storing book metadata."""
+
     __tablename__ = "books"
 
     # Readwise book ID
@@ -79,6 +80,7 @@ class Book(Base):
 
 class Highlight(Base):
     """Highlight model for storing individual highlights."""
+
     __tablename__ = "highlights"
 
     # Readwise highlight ID
@@ -93,7 +95,9 @@ class Highlight(Base):
     url: Mapped[Optional[str]] = mapped_column(String(1000))
 
     # Foreign key to book
-    book_id: Mapped[int] = mapped_column(Integer, ForeignKey("books.id"), nullable=False, index=True)
+    book_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("books.id"), nullable=False, index=True
+    )
 
     # Timestamps
     highlighted_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), index=True)
@@ -108,7 +112,9 @@ class Highlight(Base):
 
     # Relationships
     book: Mapped["Book"] = relationship("Book", back_populates="highlights")
-    tags: Mapped[list["Tag"]] = relationship("Tag", secondary=highlight_tags, back_populates="highlights")
+    tags: Mapped[list["Tag"]] = relationship(
+        "Tag", secondary=highlight_tags, back_populates="highlights"
+    )
 
     # Indexes
     __table_args__ = (
@@ -123,6 +129,7 @@ class Highlight(Base):
 
 class Tag(Base):
     """Tag model for categorizing highlights and books."""
+
     __tablename__ = "tags"
 
     # Readwise tag ID
@@ -141,10 +148,14 @@ class Tag(Base):
 
     # Relationships
     highlights: Mapped[list["Highlight"]] = relationship(
-        "Highlight", secondary=highlight_tags, back_populates="tags",
+        "Highlight",
+        secondary=highlight_tags,
+        back_populates="tags",
     )
     books: Mapped[list["Book"]] = relationship(
-        "Book", secondary=book_tags, back_populates="tags",
+        "Book",
+        secondary=book_tags,
+        back_populates="tags",
     )
 
     def __repr__(self):
@@ -153,6 +164,7 @@ class Tag(Base):
 
 class SyncStatus(Base):
     """Track synchronization status with Readwise API."""
+
     __tablename__ = "sync_status"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
@@ -161,7 +173,9 @@ class SyncStatus(Base):
     sync_type: Mapped[str] = mapped_column(String(50), nullable=False)  # 'full', 'incremental'
     started_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     completed_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True))
-    status: Mapped[str] = mapped_column(String(20), nullable=False)  # 'running', 'completed', 'failed'
+    status: Mapped[str] = mapped_column(
+        String(20), nullable=False
+    )  # 'running', 'completed', 'failed'
 
     # Sync results
     highlights_synced: Mapped[int] = mapped_column(Integer, default=0)

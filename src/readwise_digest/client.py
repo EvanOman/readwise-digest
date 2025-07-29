@@ -35,7 +35,9 @@ class ReadwiseClient:
     ):
         self.api_key = api_key or os.getenv("READWISE_API_KEY")
         if not self.api_key:
-            raise AuthenticationError("API key is required. Set READWISE_API_KEY environment variable or pass api_key parameter.")
+            raise AuthenticationError(
+                "API key is required. Set READWISE_API_KEY environment variable or pass api_key parameter."
+            )
 
         self.base_url = base_url.rstrip("/")
         self.timeout = timeout
@@ -43,11 +45,13 @@ class ReadwiseClient:
 
         # Configure session with retries
         self.session = requests.Session()
-        self.session.headers.update({
-            "Authorization": f"Token {self.api_key}",
-            "Content-Type": "application/json",
-            "User-Agent": "ReadwiseDigest/0.1.0",
-        })
+        self.session.headers.update(
+            {
+                "Authorization": f"Token {self.api_key}",
+                "Content-Type": "application/json",
+                "User-Agent": "ReadwiseDigest/0.1.0",
+            }
+        )
 
         # Configure retry strategy
         retry_strategy = Retry(
@@ -165,6 +169,7 @@ class ReadwiseClient:
             if next_url and next_url.startswith("http"):
                 # Extract just the path and query from full URL
                 from urllib.parse import urlparse
+
                 parsed = urlparse(next_url)
                 # Remove the /api/v2 prefix since _make_request adds it
                 path = parsed.path
@@ -213,6 +218,7 @@ class ReadwiseClient:
             next_url = data.get("next")
             if next_url and next_url.startswith("http"):
                 from urllib.parse import urlparse
+
                 parsed = urlparse(next_url)
                 # Remove the /api/v2 prefix since _make_request adds it
                 path = parsed.path
@@ -245,17 +251,19 @@ class ReadwiseClient:
     ) -> Highlight:
         """Create a new highlight."""
         data = {
-            "highlights": [{
-                "text": text,
-                "title": title,
-                "author": author,
-                "source_url": source_url,
-                "source_type": source_type,
-                "category": category,
-                "note": note,
-                "highlighted_at": highlighted_at.isoformat() if highlighted_at else None,
-                "location_type": location_type,
-            }],
+            "highlights": [
+                {
+                    "text": text,
+                    "title": title,
+                    "author": author,
+                    "source_url": source_url,
+                    "source_type": source_type,
+                    "category": category,
+                    "note": note,
+                    "highlighted_at": highlighted_at.isoformat() if highlighted_at else None,
+                    "location_type": location_type,
+                }
+            ],
         }
 
         response = self._make_request("POST", "highlights/", json_data=data)

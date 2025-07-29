@@ -127,6 +127,7 @@ class TestReadwiseClient:
         """Test rate limit error handling."""
         # Create a mock response object
         from unittest.mock import Mock
+
         mock_response = Mock()
         mock_response.status_code = 429
         mock_response.headers = {"Retry-After": "60"}

@@ -160,6 +160,7 @@ def cmd_poll(args) -> None:
                 poller.start(daemon=False)
                 # Keep main thread alive
                 import time
+
                 while poller.is_running:
                     time.sleep(1)
             except KeyboardInterrupt:
@@ -271,7 +272,8 @@ def create_parser() -> argparse.ArgumentParser:
     )
 
     digest_parser.add_argument(
-        "--output", "-o",
+        "--output",
+        "-o",
         help="Output file path (default: print to stdout)",
     )
 

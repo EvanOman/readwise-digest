@@ -17,6 +17,7 @@ from ..logging_config import get_logger
 logger = get_logger(__name__)
 router = APIRouter()
 
+
 # Pydantic models for API responses
 class BookResponse(BaseModel):
     id: int
@@ -255,9 +256,15 @@ async def get_book_highlights(
         if not book:
             raise HTTPException(status_code=404, detail="Book not found")
 
-        highlights = db.query(Highlight).filter(
-            Highlight.book_id == book_id,
-        ).order_by(desc(Highlight.highlighted_at)).limit(limit).all()
+        highlights = (
+            db.query(Highlight)
+            .filter(
+                Highlight.book_id == book_id,
+            )
+            .order_by(desc(Highlight.highlighted_at))
+            .limit(limit)
+            .all()
+        )
 
         return [HighlightResponse.from_orm(h) for h in highlights]
 
@@ -277,19 +284,28 @@ async def get_tags(
     """Get tags with usage counts."""
     try:
         # Get tags with counts
-        tags = db.query(
-            Tag.id,
-            Tag.name,
-            func.count(Highlight.id).label("highlight_count"),
-        ).outerjoin(
-            Highlight.tags,
-        ).group_by(
-            Tag.id, Tag.name,
-        ).having(
-            func.count(Highlight.id) >= min_count,
-        ).order_by(
-            desc("highlight_count"),
-        ).limit(limit).all()
+        tags = (
+            db.query(
+                Tag.id,
+                Tag.name,
+                func.count(Highlight.id).label("highlight_count"),
+            )
+            .outerjoin(
+                Highlight.tags,
+            )
+            .group_by(
+                Tag.id,
+                Tag.name,
+            )
+            .having(
+                func.count(Highlight.id) >= min_count,
+            )
+            .order_by(
+                desc("highlight_count"),
+            )
+            .limit(limit)
+            .all()
+        )
 
         return [
             TagResponse(
@@ -310,17 +326,23 @@ async def get_tags(
 async def get_sources(db: Session = Depends(get_session)):
     """Get list of all sources with counts."""
     try:
-        sources = db.query(
-            Book.source,
-            func.count(Book.id).label("book_count"),
-            func.sum(Book.num_highlights).label("highlight_count"),
-        ).filter(
-            Book.source.isnot(None),
-        ).group_by(
-            Book.source,
-        ).order_by(
-            desc("highlight_count"),
-        ).all()
+        sources = (
+            db.query(
+                Book.source,
+                func.count(Book.id).label("book_count"),
+                func.sum(Book.num_highlights).label("highlight_count"),
+            )
+            .filter(
+                Book.source.isnot(None),
+            )
+            .group_by(
+                Book.source,
+            )
+            .order_by(
+                desc("highlight_count"),
+            )
+            .all()
+        )
 
         return [
             {
@@ -423,17 +445,24 @@ async def search_highlights(
     try:
         search_term = f"%{q}%"
 
-        highlights = db.query(Highlight).join(Book).filter(
-            or_(
-                Highlight.text_search.ilike(search_term),
-                Highlight.text.ilike(search_term),
-                Highlight.note.ilike(search_term),
-                Book.title.ilike(search_term),
-                Book.author.ilike(search_term),
-            ),
-        ).order_by(
-            desc(Highlight.highlighted_at),
-        ).limit(limit).all()
+        highlights = (
+            db.query(Highlight)
+            .join(Book)
+            .filter(
+                or_(
+                    Highlight.text_search.ilike(search_term),
+                    Highlight.text.ilike(search_term),
+                    Highlight.note.ilike(search_term),
+                    Book.title.ilike(search_term),
+                    Book.author.ilike(search_term),
+                ),
+            )
+            .order_by(
+                desc(Highlight.highlighted_at),
+            )
+            .limit(limit)
+            .all()
+        )
 
         return {
             "query": q,

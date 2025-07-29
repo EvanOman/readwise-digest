@@ -33,7 +33,7 @@ def load_env_file(env_file: str = ".env") -> dict[str, str]:
                 if line and not line.startswith("#") and "=" in line:
                     key, value = line.split("=", 1)
                     # Remove quotes if present
-                    value = value.strip('"\'')
+                    value = value.strip("\"'")
                     env_vars[key.strip()] = value
                     # Also set in os.environ if not already set
                     if key.strip() not in os.environ:
@@ -61,6 +61,7 @@ def retry_with_backoff(
     Returns:
         Decorated function with retry logic
     """
+
     def decorator(func: F) -> F:
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
@@ -75,13 +76,14 @@ def retry_with_backoff(
                     if attempt == max_retries:
                         break
 
-                    delay = min(backoff_factor * (2 ** attempt), backoff_max)
+                    delay = min(backoff_factor * (2**attempt), backoff_max)
                     time.sleep(delay)
 
             # Re-raise the last exception
             raise last_exception
 
         return wrapper  # type: ignore
+
     return decorator
 
 
@@ -132,11 +134,11 @@ def parse_datetime_string(date_str: Optional[str]) -> Optional[datetime]:
     # Common datetime formats to try
     formats = [
         "%Y-%m-%dT%H:%M:%S.%fZ",  # ISO with microseconds and Z
-        "%Y-%m-%dT%H:%M:%SZ",     # ISO with Z
-        "%Y-%m-%dT%H:%M:%S.%f",   # ISO with microseconds
-        "%Y-%m-%dT%H:%M:%S",      # ISO basic
-        "%Y-%m-%d %H:%M:%S",      # Space separated
-        "%Y-%m-%d",               # Date only
+        "%Y-%m-%dT%H:%M:%SZ",  # ISO with Z
+        "%Y-%m-%dT%H:%M:%S.%f",  # ISO with microseconds
+        "%Y-%m-%dT%H:%M:%S",  # ISO basic
+        "%Y-%m-%d %H:%M:%S",  # Space separated
+        "%Y-%m-%d",  # Date only
     ]
 
     for fmt in formats:
@@ -196,7 +198,7 @@ def truncate_string(text: str, max_length: int = 100, suffix: str = "...") -> st
     if len(text) <= max_length:
         return text
 
-    return text[:max_length - len(suffix)] + suffix
+    return text[: max_length - len(suffix)] + suffix
 
 
 def sanitize_filename(filename: str, replacement: str = "_") -> str:
@@ -245,6 +247,7 @@ def calculate_rate_limit_delay(response_headers: dict[str, str]) -> Optional[flo
             # Might be HTTP date format
             try:
                 from email.utils import parsedate_to_datetime
+
                 retry_time = parsedate_to_datetime(retry_after)
                 return max(0, (retry_time - datetime.now()).total_seconds())
             except Exception:
@@ -276,7 +279,7 @@ def batch_items(items: list, batch_size: int):
         Batches of items
     """
     for i in range(0, len(items), batch_size):
-        yield items[i:i + batch_size]
+        yield items[i : i + batch_size]
 
 
 def measure_execution_time(func: F) -> F:
@@ -288,6 +291,7 @@ def measure_execution_time(func: F) -> F:
     Returns:
         Decorated function that logs execution time
     """
+
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
         import logging

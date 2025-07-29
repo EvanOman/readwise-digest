@@ -8,6 +8,7 @@ from typing import Any, Optional
 
 class HighlightLocation(Enum):
     """Location types for highlights."""
+
     KINDLE = "kindle"
     INSTAPAPER = "instapaper"
     POCKET = "pocket"
@@ -23,6 +24,7 @@ class HighlightLocation(Enum):
 @dataclass
 class Tag:
     """Represents a tag associated with highlights or books."""
+
     id: int
     name: str
 
@@ -37,6 +39,7 @@ class Tag:
 @dataclass
 class Book:
     """Represents a book in Readwise."""
+
     id: int
     title: str
     author: Optional[str] = None
@@ -82,6 +85,7 @@ class Book:
 @dataclass
 class Highlight:
     """Represents a highlight from Readwise."""
+
     id: int
     text: str
     note: Optional[str] = None

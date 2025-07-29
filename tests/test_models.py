@@ -185,8 +185,16 @@ class TestHighlightLocation:
     def test_enum_values(self):
         """Test that all expected location types are available."""
         expected_values = [
-            "kindle", "instapaper", "pocket", "ibooks", "manual",
-            "twitter", "readwise", "airr", "matter", "omnivore",
+            "kindle",
+            "instapaper",
+            "pocket",
+            "ibooks",
+            "manual",
+            "twitter",
+            "readwise",
+            "airr",
+            "matter",
+            "omnivore",
         ]
 
         for value in expected_values:

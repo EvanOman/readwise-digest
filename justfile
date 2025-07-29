@@ -299,7 +299,7 @@ quick-start:
     @echo ""
     @echo "💡 Tip: Run 'just help' for more commands"
 
-# Show current git status and recent commits  
+# Show current git status and recent commits
 git-status:
     @echo "📝 Git Status:"
     git status --short

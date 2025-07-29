@@ -52,8 +52,8 @@
                     </div>
                     <div class="flex items-center space-x-4">
                         <div class="relative">
-                            <input 
-                                type="text" 
+                            <input
+                                type="text"
                                 id="searchInput"
                                 placeholder="Search highlights..."
                                 class="bg-dark-bg-tertiary border border-dark-border rounded-lg px-4 py-2 pl-10 text-dark-text placeholder-dark-text-muted focus:border-primary-500 focus:ring-1 focus:ring-primary-500 w-64"
@@ -197,12 +197,12 @@
     <script>
         // API base URL
         const API_BASE = 'http://localhost:8000/api';
-        
+
         // Current state
         let currentView = 'highlights';
         let currentPage = 1;
         let currentFilters = {};
-        
+
         // Initialize the app
         async function init() {
             await loadStats();
@@ -210,17 +210,17 @@
             await loadBooks();
             await loadSources();
         }
-        
+
         // Load statistics
         async function loadStats() {
             try {
                 const response = await fetch(`${API_BASE}/stats`);
                 const stats = await response.json();
-                
+
                 document.getElementById('totalHighlights').textContent = stats.highlights.toLocaleString();
                 document.getElementById('totalBooks').textContent = stats.books.toLocaleString();
                 document.getElementById('totalTags').textContent = stats.tags.toLocaleString();
-                
+
                 if (stats.last_sync) {
                     const date = new Date(stats.last_sync.completed_at);
                     document.getElementById('lastSync').textContent = date.toLocaleDateString();
@@ -231,7 +231,7 @@
                 console.error('Error loading stats:', error);
             }
         }
-        
+
         // Load highlights
         async function loadHighlights(page = 1, search = '', filters = {}) {
             try {
@@ -240,30 +240,30 @@
                     per_page: 20,
                     ...filters
                 });
-                
+
                 if (search) params.append('search', search);
-                
+
                 const response = await fetch(`${API_BASE}/highlights?${params}`);
                 const data = await response.json();
-                
+
                 displayHighlights(data.highlights);
                 displayPagination(data.page, data.total_pages);
             } catch (error) {
                 console.error('Error loading highlights:', error);
-                document.getElementById('highlightsList').innerHTML = 
+                document.getElementById('highlightsList').innerHTML =
                     '<div class="text-center py-8 text-red-400">Error loading highlights</div>';
             }
         }
-        
+
         // Display highlights
         function displayHighlights(highlights) {
             const container = document.getElementById('highlightsList');
-            
+
             if (highlights.length === 0) {
                 container.innerHTML = '<div class="text-center py-8 text-dark-text-secondary">No highlights found</div>';
                 return;
             }
-            
+
             container.innerHTML = highlights.map(highlight => `
                 <div class="bg-dark-bg-secondary border border-dark-border rounded-lg p-6 hover:bg-dark-bg-tertiary transition-colors">
                     <div class="flex justify-between items-start mb-3">
@@ -285,94 +285,94 @@
                 </div>
             `).join('');
         }
-        
+
         // Format highlight text (simple markdown support)
         function formatHighlightText(text) {
             return text
                 .replace(/\*\*([^*]+)\*\*/g, '<strong class="text-primary-400">$1</strong>')
                 .replace(/\*([^*]+)\*/g, '<em class="text-primary-300">$1</em>');
         }
-        
+
         // Display pagination
         function displayPagination(currentPage, totalPages) {
             const container = document.getElementById('pagination');
-            
+
             if (totalPages <= 1) {
                 container.innerHTML = '';
                 return;
             }
-            
+
             let buttons = [];
-            
+
             // Previous button
             if (currentPage > 1) {
                 buttons.push(`<button onclick="changePage(${currentPage - 1})" class="px-3 py-2 bg-dark-bg-tertiary border border-dark-border rounded-lg text-dark-text hover:bg-dark-border transition-colors">Previous</button>`);
             }
-            
+
             // Page numbers
             for (let i = Math.max(1, currentPage - 2); i <= Math.min(totalPages, currentPage + 2); i++) {
                 const isActive = i === currentPage;
                 buttons.push(`<button onclick="changePage(${i})" class="px-3 py-2 ${isActive ? 'bg-primary-500 text-white' : 'bg-dark-bg-tertiary border border-dark-border text-dark-text hover:bg-dark-border'} rounded-lg transition-colors">${i}</button>`);
             }
-            
+
             // Next button
             if (currentPage < totalPages) {
                 buttons.push(`<button onclick="changePage(${currentPage + 1})" class="px-3 py-2 bg-dark-bg-tertiary border border-dark-border rounded-lg text-dark-text hover:bg-dark-border transition-colors">Next</button>`);
             }
-            
+
             container.innerHTML = `<div class="flex space-x-2">${buttons.join('')}</div>`;
         }
-        
+
         // Change page
         function changePage(page) {
             currentPage = page;
             loadHighlights(page, document.getElementById('searchInput').value, currentFilters);
         }
-        
+
         // Load books for filter
         async function loadBooks() {
             try {
                 const response = await fetch(`${API_BASE}/books?limit=100`);
                 const books = await response.json();
-                
+
                 const select = document.getElementById('bookFilter');
-                select.innerHTML = '<option value="">All Books</option>' + 
+                select.innerHTML = '<option value="">All Books</option>' +
                     books.map(book => `<option value="${book.id}">${book.title}</option>`).join('');
             } catch (error) {
                 console.error('Error loading books:', error);
             }
         }
-        
+
         // Load sources for filter
         async function loadSources() {
             try {
                 const response = await fetch(`${API_BASE}/sources`);
                 const sources = await response.json();
-                
+
                 const select = document.getElementById('sourceFilter');
-                select.innerHTML = '<option value="">All Sources</option>' + 
+                select.innerHTML = '<option value="">All Sources</option>' +
                     sources.map(source => `<option value="${source.name}">${source.name} (${source.highlight_count})</option>`).join('');
             } catch (error) {
                 console.error('Error loading sources:', error);
             }
         }
-        
+
         // Apply filters
         function applyFilters() {
             currentFilters = {};
-            
+
             const source = document.getElementById('sourceFilter').value;
             const bookId = document.getElementById('bookFilter').value;
             const hasNote = document.getElementById('notesFilter').checked;
-            
+
             if (source) currentFilters.source = source;
             if (bookId) currentFilters.book_id = bookId;
             if (hasNote) currentFilters.has_note = true;
-            
+
             currentPage = 1;
             loadHighlights(1, document.getElementById('searchInput').value, currentFilters);
         }
-        
+
         // Handle search
         function handleSearch(event) {
             if (event.key === 'Enter') {
@@ -380,17 +380,17 @@
                 loadHighlights(1, event.target.value, currentFilters);
             }
         }
-        
+
         // Show different views
         function showView(view) {
             // Hide all views
             document.getElementById('highlightsView').classList.add('hidden');
             document.getElementById('booksView').classList.add('hidden');
             document.getElementById('syncView').classList.add('hidden');
-            
+
             // Show selected view
             document.getElementById(view + 'View').classList.remove('hidden');
-            
+
             // Update navigation
             document.querySelectorAll('.nav-btn').forEach(btn => {
                 btn.classList.remove('text-primary-500');
@@ -398,20 +398,20 @@
             });
             event.target.classList.remove('text-dark-text-secondary');
             event.target.classList.add('text-primary-500');
-            
+
             currentView = view;
         }
-        
+
         // Sync functions
         async function syncData() {
             await incrementalSync();
         }
-        
+
         async function fullSync() {
             try {
                 const response = await fetch(`${API_BASE}/sync/full`, { method: 'POST' });
                 const result = await response.json();
-                
+
                 alert('Full sync started in background');
                 setTimeout(() => loadStats(), 5000); // Refresh stats after 5 seconds
             } catch (error) {
@@ -419,12 +419,12 @@
                 alert('Error starting sync');
             }
         }
-        
+
         async function incrementalSync() {
             try {
                 const response = await fetch(`${API_BASE}/sync/incremental`, { method: 'POST' });
                 const result = await response.json();
-                
+
                 alert('Incremental sync started in background');
                 setTimeout(() => {
                     loadStats();
@@ -437,7 +437,7 @@
                 alert('Error starting sync');
             }
         }
-        
+
         // Initialize when page loads
         document.addEventListener('DOMContentLoaded', init);
     </script>
