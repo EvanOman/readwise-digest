@@ -1,0 +1,1 @@
+- Use the uv package manager for everything!
