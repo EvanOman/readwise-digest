@@ -1,15 +1,15 @@
 """Database connection and session management."""
 
 import os
-from typing import Generator
+from collections.abc import Generator
 from pathlib import Path
 
-from sqlalchemy import create_engine, Engine
-from sqlalchemy.orm import sessionmaker, Session
+from sqlalchemy import Engine, create_engine
+from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
-from .models import Base
 from ..logging_config import get_logger
+from .models import Base
 
 logger = get_logger(__name__)
 
@@ -23,7 +23,7 @@ def get_database_url() -> str:
     db_url = os.getenv("DATABASE_URL")
     if db_url:
         return db_url
-    
+
     # Default to SQLite in the project directory
     project_root = Path(__file__).parent.parent.parent.parent
     db_path = project_root / "readwise_digest.db"
@@ -33,11 +33,11 @@ def get_database_url() -> str:
 def get_engine() -> Engine:
     """Get or create the database engine."""
     global _engine
-    
+
     if _engine is None:
         database_url = get_database_url()
         logger.info(f"Creating database engine for: {database_url}")
-        
+
         # SQLite-specific configuration
         if database_url.startswith("sqlite"):
             _engine = create_engine(
@@ -47,26 +47,26 @@ def get_engine() -> Engine:
                     "check_same_thread": False,  # Allow multiple threads
                     "timeout": 20,  # 20 second timeout
                 },
-                echo=os.getenv("SQL_DEBUG", "false").lower() == "true"
+                echo=os.getenv("SQL_DEBUG", "false").lower() == "true",
             )
         else:
             # PostgreSQL or other databases
             _engine = create_engine(
                 database_url,
-                echo=os.getenv("SQL_DEBUG", "false").lower() == "true"
+                echo=os.getenv("SQL_DEBUG", "false").lower() == "true",
             )
-    
+
     return _engine
 
 
 def get_session_factory() -> sessionmaker:
     """Get or create the session factory."""
     global _SessionLocal
-    
+
     if _SessionLocal is None:
         engine = get_engine()
         _SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-    
+
     return _SessionLocal
 
 
@@ -88,7 +88,7 @@ def init_db() -> None:
     """Initialize the database by creating all tables."""
     logger.info("Initializing database...")
     engine = get_engine()
-    
+
     # Create all tables
     Base.metadata.create_all(bind=engine)
     logger.info("Database initialized successfully")
@@ -98,10 +98,10 @@ def reset_db() -> None:
     """Reset the database by dropping and recreating all tables."""
     logger.warning("Resetting database - all data will be lost!")
     engine = get_engine()
-    
+
     # Drop all tables
     Base.metadata.drop_all(bind=engine)
-    
+
     # Recreate tables
     Base.metadata.create_all(bind=engine)
     logger.info("Database reset completed")
@@ -109,30 +109,30 @@ def reset_db() -> None:
 
 def get_db_stats() -> dict:
     """Get basic statistics about the database."""
-    from .models import Book, Highlight, Tag, SyncStatus
-    
+    from .models import Book, Highlight, SyncStatus, Tag
+
     SessionLocal = get_session_factory()
     with SessionLocal() as session:
         stats = {
             "books": session.query(Book).count(),
             "highlights": session.query(Highlight).count(),
             "tags": session.query(Tag).count(),
-            "sync_records": session.query(SyncStatus).count()
+            "sync_records": session.query(SyncStatus).count(),
         }
-        
+
         # Get last sync info
         last_sync = session.query(SyncStatus).filter(
-            SyncStatus.status == 'completed'
+            SyncStatus.status == "completed",
         ).order_by(SyncStatus.completed_at.desc()).first()
-        
+
         if last_sync:
             stats["last_sync"] = {
                 "completed_at": last_sync.completed_at,
                 "type": last_sync.sync_type,
                 "highlights_synced": last_sync.highlights_synced,
-                "books_synced": last_sync.books_synced
+                "books_synced": last_sync.books_synced,
             }
         else:
             stats["last_sync"] = None
-    
+
     return stats

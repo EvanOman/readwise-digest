@@ -159,22 +159,43 @@ test-cov:
     uv run pytest tests/ -v --cov=src/readwise_digest --cov-report=html
     @echo "📊 Coverage report generated in htmlcov/index.html"
 
-# Format code with black and isort
+# Format code with ruff
 format:
     @echo "🎨 Formatting code..."
-    uv run black src/ tests/ --line-length 100
-    uv run isort src/ tests/ --profile black
+    uv run ruff format src/ tests/
 
-# Lint code
+# Lint code with ruff
 lint:
     @echo "🔍 Linting code..."
-    uv run flake8 src/ tests/ --max-line-length 100
-    uv run mypy src/
+    uv run ruff check src/ tests/ --fix
 
-# Type check
+# Type check with mypy
 type-check:
     @echo "🔍 Type checking..."
     uv run mypy src/
+
+# Run all code quality checks
+check:
+    @echo "🔍 Running all code quality checks..."
+    just lint
+    just test
+
+# Run all code quality checks including type checking
+check-strict:
+    @echo "🔍 Running all code quality checks with type checking..."
+    just lint
+    just type-check
+    just test
+
+# Install pre-commit hooks
+install-hooks:
+    @echo "🔗 Installing pre-commit hooks..."
+    uv run pre-commit install
+
+# Run pre-commit on all files
+pre-commit-all:
+    @echo "🔍 Running pre-commit on all files..."
+    uv run pre-commit run --all-files
 
 # Clean up generated files
 clean:

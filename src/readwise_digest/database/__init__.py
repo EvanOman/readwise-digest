@@ -1,19 +1,19 @@
 """Database models and utilities for Readwise Digest."""
 
-from .models import Base, Book, Highlight, Tag, HighlightTag, BookTag, SyncStatus
 from .database import get_engine, get_session, init_db
+from .models import Base, Book, BookTag, Highlight, HighlightTag, SyncStatus, Tag
 from .sync import DatabaseSync
 
 __all__ = [
     "Base",
-    "Book", 
-    "Highlight",
-    "Tag",
-    "HighlightTag",
+    "Book",
     "BookTag",
+    "DatabaseSync",
+    "Highlight",
+    "HighlightTag",
     "SyncStatus",
+    "Tag",
     "get_engine",
     "get_session",
     "init_db",
-    "DatabaseSync",
 ]

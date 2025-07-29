@@ -1,11 +1,12 @@
 """Pytest configuration and fixtures."""
 
-import pytest
-from unittest.mock import Mock
 from datetime import datetime
+from unittest.mock import Mock
 
-from readwise_digest import ReadwiseClient
-from readwise_digest.models import Highlight, Book, Tag
+import pytest
+
+from src.readwise_digest import ReadwiseClient
+from src.readwise_digest.models import Book, Highlight, Tag
 
 
 @pytest.fixture
@@ -24,7 +25,7 @@ def sample_book():
         category="books",
         source="kindle",
         num_highlights=5,
-        updated=datetime(2023, 1, 1, 12, 0, 0)
+        updated=datetime(2023, 1, 1, 12, 0, 0),
     )
 
 
@@ -48,7 +49,7 @@ def sample_highlight(sample_book, sample_tag):
         url="https://example.com/highlight",
         color="yellow",
         tags=[sample_tag],
-        book=sample_book
+        book=sample_book,
     )
 
 
@@ -62,14 +63,14 @@ def sample_highlights(sample_book):
             note="First note",
             highlighted_at=datetime(2023, 1, 1, 12, 0, 0),
             book_id=1,
-            book=sample_book
+            book=sample_book,
         ),
         Highlight(
             id=2,
             text="Second highlight",
             highlighted_at=datetime(2023, 1, 2, 12, 0, 0),
             book_id=1,
-            book=sample_book
+            book=sample_book,
         ),
         Highlight(
             id=3,
@@ -77,8 +78,8 @@ def sample_highlights(sample_book):
             note="Third note",
             highlighted_at=datetime(2023, 1, 3, 12, 0, 0),
             book_id=1,
-            book=sample_book
-        )
+            book=sample_book,
+        ),
     ]
 
 
@@ -106,8 +107,8 @@ def api_response_highlights():
                     "id": 1,
                     "title": "Test Book",
                     "author": "Test Author",
-                    "source": "kindle"
-                }
+                    "source": "kindle",
+                },
             },
             {
                 "id": 2,
@@ -115,9 +116,9 @@ def api_response_highlights():
                 "highlighted_at": "2023-01-02T12:00:00Z",
                 "updated": "2023-01-02T12:00:00Z",
                 "book_id": 1,
-                "tags": []
-            }
-        ]
+                "tags": [],
+            },
+        ],
     }
 
 
@@ -142,7 +143,7 @@ def api_response_books():
                 "highlights_url": "https://example.com/highlights",
                 "source_url": "https://example.com/book",
                 "asin": "B123456789",
-                "tags": []
-            }
-        ]
+                "tags": [],
+            },
+        ],
     }

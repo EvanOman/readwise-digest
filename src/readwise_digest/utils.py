@@ -1,37 +1,37 @@
 """Utility functions for the Readwise Digest SDK."""
 
-import os
-import json
-import time
 import functools
-from typing import Any, Dict, Optional, Callable, TypeVar, Union
-from datetime import datetime, timedelta
+import json
+import os
+import time
+from datetime import datetime
 from pathlib import Path
+from typing import Any, Callable, Optional, TypeVar, Union
 
-F = TypeVar('F', bound=Callable[..., Any])
+F = TypeVar("F", bound=Callable[..., Any])
 
 
-def load_env_file(env_file: str = ".env") -> Dict[str, str]:
+def load_env_file(env_file: str = ".env") -> dict[str, str]:
     """Load environment variables from a .env file.
-    
+
     Args:
         env_file: Path to the .env file
-        
+
     Returns:
         Dictionary of environment variables
     """
     env_vars = {}
     env_path = Path(env_file)
-    
+
     if not env_path.exists():
         return env_vars
-    
+
     try:
-        with open(env_path, 'r') as f:
+        with open(env_path) as f:
             for line in f:
                 line = line.strip()
-                if line and not line.startswith('#') and '=' in line:
-                    key, value = line.split('=', 1)
+                if line and not line.startswith("#") and "=" in line:
+                    key, value = line.split("=", 1)
                     # Remove quotes if present
                     value = value.strip('"\'')
                     env_vars[key.strip()] = value
@@ -40,7 +40,7 @@ def load_env_file(env_file: str = ".env") -> Dict[str, str]:
                         os.environ[key.strip()] = value
     except Exception as e:
         print(f"Warning: Could not load .env file {env_file}: {e}")
-    
+
     return env_vars
 
 
@@ -48,16 +48,16 @@ def retry_with_backoff(
     max_retries: int = 3,
     backoff_factor: float = 1.0,
     backoff_max: float = 60.0,
-    exceptions: tuple = (Exception,)
+    exceptions: tuple = (Exception,),
 ) -> Callable[[F], F]:
     """Decorator to retry function calls with exponential backoff.
-    
+
     Args:
         max_retries: Maximum number of retry attempts
         backoff_factor: Multiplier for backoff delay
         backoff_max: Maximum backoff delay in seconds
         exceptions: Tuple of exceptions to catch and retry
-        
+
     Returns:
         Decorated function with retry logic
     """
@@ -65,33 +65,33 @@ def retry_with_backoff(
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
             last_exception = None
-            
+
             for attempt in range(max_retries + 1):
                 try:
                     return func(*args, **kwargs)
                 except exceptions as e:
                     last_exception = e
-                    
+
                     if attempt == max_retries:
                         break
-                    
+
                     delay = min(backoff_factor * (2 ** attempt), backoff_max)
                     time.sleep(delay)
-            
+
             # Re-raise the last exception
             raise last_exception
-        
+
         return wrapper  # type: ignore
     return decorator
 
 
 def safe_json_loads(data: str, default: Any = None) -> Any:
     """Safely parse JSON string, returning default on error.
-    
+
     Args:
         data: JSON string to parse
         default: Default value to return on parse error
-        
+
     Returns:
         Parsed JSON data or default value
     """
@@ -103,11 +103,11 @@ def safe_json_loads(data: str, default: Any = None) -> Any:
 
 def safe_json_dumps(data: Any, default: str = "{}") -> str:
     """Safely serialize data to JSON string, returning default on error.
-    
+
     Args:
         data: Data to serialize
         default: Default string to return on serialization error
-        
+
     Returns:
         JSON string or default value
     """
@@ -119,16 +119,16 @@ def safe_json_dumps(data: Any, default: str = "{}") -> str:
 
 def parse_datetime_string(date_str: Optional[str]) -> Optional[datetime]:
     """Parse datetime string in various formats.
-    
+
     Args:
         date_str: Datetime string to parse
-        
+
     Returns:
         Parsed datetime object or None
     """
     if not date_str:
         return None
-    
+
     # Common datetime formats to try
     formats = [
         "%Y-%m-%dT%H:%M:%S.%fZ",  # ISO with microseconds and Z
@@ -138,43 +138,42 @@ def parse_datetime_string(date_str: Optional[str]) -> Optional[datetime]:
         "%Y-%m-%d %H:%M:%S",      # Space separated
         "%Y-%m-%d",               # Date only
     ]
-    
+
     for fmt in formats:
         try:
             return datetime.strptime(date_str, fmt)
         except ValueError:
             continue
-    
+
     # Try ISO format parsing as fallback
     try:
         # Handle timezone-aware strings
-        return datetime.fromisoformat(date_str.replace('Z', '+00:00'))
+        return datetime.fromisoformat(date_str.replace("Z", "+00:00"))
     except (ValueError, AttributeError):
         return None
 
 
 def format_datetime(dt: datetime, include_microseconds: bool = False) -> str:
     """Format datetime object to ISO string.
-    
+
     Args:
         dt: Datetime object to format
         include_microseconds: Include microseconds in output
-        
+
     Returns:
         ISO formatted datetime string
     """
     if include_microseconds:
         return dt.isoformat()
-    else:
-        return dt.replace(microsecond=0).isoformat()
+    return dt.replace(microsecond=0).isoformat()
 
 
 def ensure_directory(path: Union[str, Path]) -> Path:
     """Ensure directory exists, creating if necessary.
-    
+
     Args:
         path: Directory path to ensure
-        
+
     Returns:
         Path object for the directory
     """
@@ -185,60 +184,60 @@ def ensure_directory(path: Union[str, Path]) -> Path:
 
 def truncate_string(text: str, max_length: int = 100, suffix: str = "...") -> str:
     """Truncate string to maximum length with suffix.
-    
+
     Args:
         text: String to truncate
         max_length: Maximum length including suffix
         suffix: Suffix to append when truncating
-        
+
     Returns:
         Truncated string
     """
     if len(text) <= max_length:
         return text
-    
+
     return text[:max_length - len(suffix)] + suffix
 
 
 def sanitize_filename(filename: str, replacement: str = "_") -> str:
     """Sanitize filename by replacing invalid characters.
-    
+
     Args:
         filename: Original filename
         replacement: Character to replace invalid characters with
-        
+
     Returns:
         Sanitized filename
     """
     import re
-    
+
     # Characters that are invalid in filenames on most systems
     invalid_chars = r'[<>:"/\\|?*\x00-\x1f]'
-    
+
     # Replace invalid characters
     sanitized = re.sub(invalid_chars, replacement, filename)
-    
+
     # Remove leading/trailing dots and spaces
-    sanitized = sanitized.strip('. ')
-    
+    sanitized = sanitized.strip(". ")
+
     # Ensure filename is not empty
     if not sanitized:
         sanitized = "untitled"
-    
+
     return sanitized
 
 
-def calculate_rate_limit_delay(response_headers: Dict[str, str]) -> Optional[float]:
+def calculate_rate_limit_delay(response_headers: dict[str, str]) -> Optional[float]:
     """Calculate delay needed for rate limiting based on response headers.
-    
+
     Args:
         response_headers: HTTP response headers
-        
+
     Returns:
         Delay in seconds or None if no rate limiting detected
     """
     # Check for Retry-After header
-    retry_after = response_headers.get('Retry-After')
+    retry_after = response_headers.get("Retry-After")
     if retry_after:
         try:
             return float(retry_after)
@@ -250,29 +249,29 @@ def calculate_rate_limit_delay(response_headers: Dict[str, str]) -> Optional[flo
                 return max(0, (retry_time - datetime.now()).total_seconds())
             except Exception:
                 pass
-    
+
     # Check for X-RateLimit headers
-    remaining = response_headers.get('X-RateLimit-Remaining')
-    reset_time = response_headers.get('X-RateLimit-Reset')
-    
-    if remaining == '0' and reset_time:
+    remaining = response_headers.get("X-RateLimit-Remaining")
+    reset_time = response_headers.get("X-RateLimit-Reset")
+
+    if remaining == "0" and reset_time:
         try:
             reset_timestamp = int(reset_time)
             current_time = int(time.time())
             return max(0, reset_timestamp - current_time)
         except ValueError:
             pass
-    
+
     return None
 
 
 def batch_items(items: list, batch_size: int):
     """Yield successive batches from a list.
-    
+
     Args:
         items: List of items to batch
         batch_size: Size of each batch
-        
+
     Yields:
         Batches of items
     """
@@ -282,20 +281,20 @@ def batch_items(items: list, batch_size: int):
 
 def measure_execution_time(func: F) -> F:
     """Decorator to measure and log function execution time.
-    
+
     Args:
         func: Function to measure
-        
+
     Returns:
         Decorated function that logs execution time
     """
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
         import logging
-        
+
         logger = logging.getLogger(func.__module__)
         start_time = time.time()
-        
+
         try:
             result = func(*args, **kwargs)
             execution_time = time.time() - start_time
@@ -305,37 +304,38 @@ def measure_execution_time(func: F) -> F:
             execution_time = time.time() - start_time
             logger.debug(f"{func.__name__} failed after {execution_time:.3f}s: {e}")
             raise
-    
+
     return wrapper  # type: ignore
 
 
 def get_user_agent() -> str:
     """Get user agent string for API requests.
-    
+
     Returns:
         User agent string
     """
-    from . import __version__
     import platform
-    
+
+    from . import __version__
+
     python_version = f"{platform.python_version()}"
     system = f"{platform.system()} {platform.release()}"
-    
+
     return f"ReadwiseDigest/{__version__} (Python {python_version}; {system})"
 
 
 def validate_api_key(api_key: str) -> bool:
     """Validate API key format.
-    
+
     Args:
         api_key: API key to validate
-        
+
     Returns:
         True if API key format is valid
     """
     if not api_key or not isinstance(api_key, str):
         return False
-    
+
     # Basic validation - should be a non-empty string
     # Readwise API keys are typically long alphanumeric strings
     return len(api_key.strip()) > 10 and api_key.isalnum()

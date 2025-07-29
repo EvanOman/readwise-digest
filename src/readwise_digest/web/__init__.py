@@ -1,6 +1,6 @@
 """Web interface for Readwise Digest."""
 
-from .app import create_app
 from .api import router as api_router
+from .app import create_app
 
-__all__ = ["create_app", "api_router"]
+__all__ = ["api_router", "create_app"]

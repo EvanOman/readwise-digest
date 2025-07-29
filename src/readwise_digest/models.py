@@ -2,8 +2,8 @@
 
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Optional, List, Dict, Any
 from enum import Enum
+from typing import Any, Optional
 
 
 class HighlightLocation(Enum):
@@ -25,12 +25,12 @@ class Tag:
     """Represents a tag associated with highlights or books."""
     id: int
     name: str
-    
+
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "Tag":
+    def from_dict(cls, data: dict[str, Any]) -> "Tag":
         return cls(
             id=data["id"],
-            name=data["name"]
+            name=data["name"],
         )
 
 
@@ -49,10 +49,10 @@ class Book:
     highlights_url: Optional[str] = None
     source_url: Optional[str] = None
     asin: Optional[str] = None
-    tags: List[Tag] = field(default_factory=list)
-    
+    tags: list[Tag] = field(default_factory=list)
+
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "Book":
+    def from_dict(cls, data: dict[str, Any]) -> "Book":
         return cls(
             id=data["id"],
             title=data["title"],
@@ -66,15 +66,15 @@ class Book:
             highlights_url=data.get("highlights_url"),
             source_url=data.get("source_url"),
             asin=data.get("asin"),
-            tags=[Tag.from_dict(tag) for tag in data.get("tags", [])]
+            tags=[Tag.from_dict(tag) for tag in data.get("tags", [])],
         )
-    
+
     @staticmethod
     def _parse_datetime(date_str: Optional[str]) -> Optional[datetime]:
         if not date_str:
             return None
         try:
-            return datetime.fromisoformat(date_str.replace('Z', '+00:00'))
+            return datetime.fromisoformat(date_str.replace("Z", "+00:00"))
         except (ValueError, AttributeError):
             return None
 
@@ -92,22 +92,22 @@ class Highlight:
     book_id: Optional[int] = None
     url: Optional[str] = None
     color: Optional[str] = None
-    tags: List[Tag] = field(default_factory=list)
+    tags: list[Tag] = field(default_factory=list)
     book: Optional[Book] = None
-    
+
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "Highlight":
+    def from_dict(cls, data: dict[str, Any]) -> "Highlight":
         location_type = None
         if data.get("location_type"):
             try:
                 location_type = HighlightLocation(data["location_type"])
             except ValueError:
                 location_type = None
-        
+
         book = None
-        if "book" in data and data["book"]:
+        if data.get("book"):
             book = Book.from_dict(data["book"])
-        
+
         return cls(
             id=data["id"],
             text=data["text"],
@@ -120,14 +120,14 @@ class Highlight:
             url=data.get("url"),
             color=data.get("color"),
             tags=[Tag.from_dict(tag) for tag in data.get("tags", [])],
-            book=book
+            book=book,
         )
-    
+
     @staticmethod
     def _parse_datetime(date_str: Optional[str]) -> Optional[datetime]:
         if not date_str:
             return None
         try:
-            return datetime.fromisoformat(date_str.replace('Z', '+00:00'))
+            return datetime.fromisoformat(date_str.replace("Z", "+00:00"))
         except (ValueError, AttributeError):
             return None
