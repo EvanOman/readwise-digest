@@ -7,6 +7,10 @@ requires-python = ">=3.9"
 dependencies = [
     "requests>=2.25.0",
     "python-dotenv>=0.19.0",
+    "sqlalchemy>=2.0.41",
+    "fastapi>=0.116.1",
+    "uvicorn>=0.35.0",
+    "alembic>=1.16.4",
 ]
 authors = [
     {name = "Readwise Digest", email = "noreply@example.com"}

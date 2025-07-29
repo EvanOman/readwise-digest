@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Readwise Digest</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        dark: {
+                            bg: '#0a0a0a',
+                            'bg-secondary': '#111111',
+                            'bg-tertiary': '#1a1a1a',
+                            text: '#e5e5e5',
+                            'text-secondary': '#a3a3a3',
+                            'text-muted': '#737373',
+                            border: '#262626',
+                            'border-secondary': '#404040',
+                        },
+                        primary: {
+                            400: '#fb923c',
+                            500: '#f97316',
+                            600: '#ea580c',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-dark-bg text-dark-text min-h-screen">
+    <div id="app">
+        <!-- Navigation -->
+        <nav class="bg-dark-bg-secondary border-b border-dark-border sticky top-0 z-50">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between items-center h-16">
+                    <div class="flex items-center space-x-4">
+                        <h1 class="text-xl font-bold text-primary-500">Readwise Digest</h1>
+                        <div class="hidden md:flex space-x-6">
+                            <button onclick="showView('highlights')" class="nav-btn text-dark-text-secondary hover:text-dark-text transition-colors">Highlights</button>
+                            <button onclick="showView('books')" class="nav-btn text-dark-text-secondary hover:text-dark-text transition-colors">Books</button>
+                            <button onclick="showView('sync')" class="nav-btn text-dark-text-secondary hover:text-dark-text transition-colors">Sync</button>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <div class="relative">
+                            <input 
+                                type="text" 
+                                id="searchInput"
+                                placeholder="Search highlights..."
+                                class="bg-dark-bg-tertiary border border-dark-border rounded-lg px-4 py-2 pl-10 text-dark-text placeholder-dark-text-muted focus:border-primary-500 focus:ring-1 focus:ring-primary-500 w-64"
+                                onkeypress="handleSearch(event)"
+                            >
+                            <svg class="absolute left-3 top-2.5 h-5 w-5 text-dark-text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                            </svg>
+                        </div>
+                        <button onclick="syncData()" class="bg-primary-500 hover:bg-primary-600 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                            Sync
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <!-- Stats Cards -->
+            <div id="statsSection" class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                <div class="bg-dark-bg-secondary border border-dark-border rounded-lg p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-dark-text-secondary text-sm font-medium">Total Highlights</p>
+                            <p id="totalHighlights" class="text-2xl font-bold text-dark-text">-</p>
+                        </div>
+                        <div class="bg-primary-500/20 p-3 rounded-lg">
+                            <svg class="h-6 w-6 text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-dark-bg-secondary border border-dark-border rounded-lg p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-dark-text-secondary text-sm font-medium">Books</p>
+                            <p id="totalBooks" class="text-2xl font-bold text-dark-text">-</p>
+                        </div>
+                        <div class="bg-primary-500/20 p-3 rounded-lg">
+                            <svg class="h-6 w-6 text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-dark-bg-secondary border border-dark-border rounded-lg p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-dark-text-secondary text-sm font-medium">Tags</p>
+                            <p id="totalTags" class="text-2xl font-bold text-dark-text">-</p>
+                        </div>
+                        <div class="bg-primary-500/20 p-3 rounded-lg">
+                            <svg class="h-6 w-6 text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-dark-bg-secondary border border-dark-border rounded-lg p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-dark-text-secondary text-sm font-medium">Last Sync</p>
+                            <p id="lastSync" class="text-2xl font-bold text-dark-text">-</p>
+                        </div>
+                        <div class="bg-primary-500/20 p-3 rounded-lg">
+                            <svg class="h-6 w-6 text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Content Views -->
+            <div id="highlightsView">
+                <!-- Filters -->
+                <div class="bg-dark-bg-secondary border border-dark-border rounded-lg p-4 mb-6">
+                    <div class="flex flex-wrap gap-4 items-center">
+                        <select id="sourceFilter" class="bg-dark-bg-tertiary border border-dark-border rounded-lg px-3 py-2 text-dark-text">
+                            <option value="">All Sources</option>
+                        </select>
+                        <select id="bookFilter" class="bg-dark-bg-tertiary border border-dark-border rounded-lg px-3 py-2 text-dark-text">
+                            <option value="">All Books</option>
+                        </select>
+                        <label class="flex items-center space-x-2 text-dark-text-secondary">
+                            <input type="checkbox" id="notesFilter" class="rounded border-dark-border bg-dark-bg-tertiary">
+                            <span>With Notes Only</span>
+                        </label>
+                        <button onclick="applyFilters()" class="bg-primary-500 hover:bg-primary-600 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                            Apply Filters
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Highlights List -->
+                <div id="highlightsList" class="space-y-4">
+                    <div class="text-center py-8">
+                        <div class="animate-spin rounded-full h-8 w-8 border-2 border-dark-border border-t-primary-500 mx-auto mb-4"></div>
+                        <p class="text-dark-text-secondary">Loading highlights...</p>
+                    </div>
+                </div>
+
+                <!-- Pagination -->
+                <div id="pagination" class="mt-8 flex justify-center">
+                    <!-- Pagination buttons will be added here -->
+                </div>
+            </div>
+
+            <!-- Other views (hidden by default) -->
+            <div id="booksView" class="hidden">
+                <h2 class="text-2xl font-bold mb-6">Books</h2>
+                <div id="booksList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Books will be loaded here -->
+                </div>
+            </div>
+
+            <div id="syncView" class="hidden">
+                <h2 class="text-2xl font-bold mb-6">Synchronization</h2>
+                <div class="bg-dark-bg-secondary border border-dark-border rounded-lg p-6">
+                    <div class="space-y-4">
+                        <button onclick="fullSync()" class="w-full bg-primary-500 hover:bg-primary-600 text-white px-6 py-3 rounded-lg font-medium transition-colors">
+                            Full Sync
+                        </button>
+                        <button onclick="incrementalSync()" class="w-full bg-dark-bg-tertiary hover:bg-dark-border text-dark-text px-6 py-3 rounded-lg font-medium transition-colors border border-dark-border">
+                            Incremental Sync (Last 24h)
+                        </button>
+                    </div>
+                    <div id="syncHistory" class="mt-8">
+                        <h3 class="text-lg font-semibold mb-4">Sync History</h3>
+                        <div id="syncHistoryList">
+                            <!-- Sync history will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // API base URL
+        const API_BASE = 'http://localhost:8000/api';
+        
+        // Current state
+        let currentView = 'highlights';
+        let currentPage = 1;
+        let currentFilters = {};
+        
+        // Initialize the app
+        async function init() {
+            await loadStats();
+            await loadHighlights();
+            await loadBooks();
+            await loadSources();
+        }
+        
+        // Load statistics
+        async function loadStats() {
+            try {
+                const response = await fetch(`${API_BASE}/stats`);
+                const stats = await response.json();
+                
+                document.getElementById('totalHighlights').textContent = stats.highlights.toLocaleString();
+                document.getElementById('totalBooks').textContent = stats.books.toLocaleString();
+                document.getElementById('totalTags').textContent = stats.tags.toLocaleString();
+                
+                if (stats.last_sync) {
+                    const date = new Date(stats.last_sync.completed_at);
+                    document.getElementById('lastSync').textContent = date.toLocaleDateString();
+                } else {
+                    document.getElementById('lastSync').textContent = 'Never';
+                }
+            } catch (error) {
+                console.error('Error loading stats:', error);
+            }
+        }
+        
+        // Load highlights
+        async function loadHighlights(page = 1, search = '', filters = {}) {
+            try {
+                const params = new URLSearchParams({
+                    page: page,
+                    per_page: 20,
+                    ...filters
+                });
+                
+                if (search) params.append('search', search);
+                
+                const response = await fetch(`${API_BASE}/highlights?${params}`);
+                const data = await response.json();
+                
+                displayHighlights(data.highlights);
+                displayPagination(data.page, data.total_pages);
+            } catch (error) {
+                console.error('Error loading highlights:', error);
+                document.getElementById('highlightsList').innerHTML = 
+                    '<div class="text-center py-8 text-red-400">Error loading highlights</div>';
+            }
+        }
+        
+        // Display highlights
+        function displayHighlights(highlights) {
+            const container = document.getElementById('highlightsList');
+            
+            if (highlights.length === 0) {
+                container.innerHTML = '<div class="text-center py-8 text-dark-text-secondary">No highlights found</div>';
+                return;
+            }
+            
+            container.innerHTML = highlights.map(highlight => `
+                <div class="bg-dark-bg-secondary border border-dark-border rounded-lg p-6 hover:bg-dark-bg-tertiary transition-colors">
+                    <div class="flex justify-between items-start mb-3">
+                        <div class="flex-1">
+                            <h3 class="font-semibold text-dark-text mb-1">${highlight.book?.title || 'Unknown Book'}</h3>
+                            <p class="text-dark-text-secondary text-sm">${highlight.book?.author || 'Unknown Author'}</p>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            ${highlight.book?.source ? `<span class="bg-primary-500/20 text-primary-400 px-2 py-1 rounded text-xs">${highlight.book.source}</span>` : ''}
+                            ${highlight.note ? '<span class="bg-blue-500/20 text-blue-400 px-2 py-1 rounded text-xs">Note</span>' : ''}
+                        </div>
+                    </div>
+                    <blockquote class="text-dark-text mb-3 leading-relaxed">${formatHighlightText(highlight.text)}</blockquote>
+                    ${highlight.note ? `<div class="bg-dark-bg-tertiary border-l-4 border-primary-500 p-3 rounded-r"><p class="text-dark-text-secondary italic">${highlight.note}</p></div>` : ''}
+                    <div class="flex justify-between items-center mt-4 text-xs text-dark-text-muted">
+                        <span>${highlight.highlighted_at ? new Date(highlight.highlighted_at).toLocaleDateString() : 'Unknown date'}</span>
+                        ${highlight.location ? `<span>Location: ${highlight.location}</span>` : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        // Format highlight text (simple markdown support)
+        function formatHighlightText(text) {
+            return text
+                .replace(/\*\*([^*]+)\*\*/g, '<strong class="text-primary-400">$1</strong>')
+                .replace(/\*([^*]+)\*/g, '<em class="text-primary-300">$1</em>');
+        }
+        
+        // Display pagination
+        function displayPagination(currentPage, totalPages) {
+            const container = document.getElementById('pagination');
+            
+            if (totalPages <= 1) {
+                container.innerHTML = '';
+                return;
+            }
+            
+            let buttons = [];
+            
+            // Previous button
+            if (currentPage > 1) {
+                buttons.push(`<button onclick="changePage(${currentPage - 1})" class="px-3 py-2 bg-dark-bg-tertiary border border-dark-border rounded-lg text-dark-text hover:bg-dark-border transition-colors">Previous</button>`);
+            }
+            
+            // Page numbers
+            for (let i = Math.max(1, currentPage - 2); i <= Math.min(totalPages, currentPage + 2); i++) {
+                const isActive = i === currentPage;
+                buttons.push(`<button onclick="changePage(${i})" class="px-3 py-2 ${isActive ? 'bg-primary-500 text-white' : 'bg-dark-bg-tertiary border border-dark-border text-dark-text hover:bg-dark-border'} rounded-lg transition-colors">${i}</button>`);
+            }
+            
+            // Next button
+            if (currentPage < totalPages) {
+                buttons.push(`<button onclick="changePage(${currentPage + 1})" class="px-3 py-2 bg-dark-bg-tertiary border border-dark-border rounded-lg text-dark-text hover:bg-dark-border transition-colors">Next</button>`);
+            }
+            
+            container.innerHTML = `<div class="flex space-x-2">${buttons.join('')}</div>`;
+        }
+        
+        // Change page
+        function changePage(page) {
+            currentPage = page;
+            loadHighlights(page, document.getElementById('searchInput').value, currentFilters);
+        }
+        
+        // Load books for filter
+        async function loadBooks() {
+            try {
+                const response = await fetch(`${API_BASE}/books?limit=100`);
+                const books = await response.json();
+                
+                const select = document.getElementById('bookFilter');
+                select.innerHTML = '<option value="">All Books</option>' + 
+                    books.map(book => `<option value="${book.id}">${book.title}</option>`).join('');
+            } catch (error) {
+                console.error('Error loading books:', error);
+            }
+        }
+        
+        // Load sources for filter
+        async function loadSources() {
+            try {
+                const response = await fetch(`${API_BASE}/sources`);
+                const sources = await response.json();
+                
+                const select = document.getElementById('sourceFilter');
+                select.innerHTML = '<option value="">All Sources</option>' + 
+                    sources.map(source => `<option value="${source.name}">${source.name} (${source.highlight_count})</option>`).join('');
+            } catch (error) {
+                console.error('Error loading sources:', error);
+            }
+        }
+        
+        // Apply filters
+        function applyFilters() {
+            currentFilters = {};
+            
+            const source = document.getElementById('sourceFilter').value;
+            const bookId = document.getElementById('bookFilter').value;
+            const hasNote = document.getElementById('notesFilter').checked;
+            
+            if (source) currentFilters.source = source;
+            if (bookId) currentFilters.book_id = bookId;
+            if (hasNote) currentFilters.has_note = true;
+            
+            currentPage = 1;
+            loadHighlights(1, document.getElementById('searchInput').value, currentFilters);
+        }
+        
+        // Handle search
+        function handleSearch(event) {
+            if (event.key === 'Enter') {
+                currentPage = 1;
+                loadHighlights(1, event.target.value, currentFilters);
+            }
+        }
+        
+        // Show different views
+        function showView(view) {
+            // Hide all views
+            document.getElementById('highlightsView').classList.add('hidden');
+            document.getElementById('booksView').classList.add('hidden');
+            document.getElementById('syncView').classList.add('hidden');
+            
+            // Show selected view
+            document.getElementById(view + 'View').classList.remove('hidden');
+            
+            // Update navigation
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('text-primary-500');
+                btn.classList.add('text-dark-text-secondary');
+            });
+            event.target.classList.remove('text-dark-text-secondary');
+            event.target.classList.add('text-primary-500');
+            
+            currentView = view;
+        }
+        
+        // Sync functions
+        async function syncData() {
+            await incrementalSync();
+        }
+        
+        async function fullSync() {
+            try {
+                const response = await fetch(`${API_BASE}/sync/full`, { method: 'POST' });
+                const result = await response.json();
+                
+                alert('Full sync started in background');
+                setTimeout(() => loadStats(), 5000); // Refresh stats after 5 seconds
+            } catch (error) {
+                console.error('Error starting full sync:', error);
+                alert('Error starting sync');
+            }
+        }
+        
+        async function incrementalSync() {
+            try {
+                const response = await fetch(`${API_BASE}/sync/incremental`, { method: 'POST' });
+                const result = await response.json();
+                
+                alert('Incremental sync started in background');
+                setTimeout(() => {
+                    loadStats();
+                    if (currentView === 'highlights') {
+                        loadHighlights(currentPage, document.getElementById('searchInput').value, currentFilters);
+                    }
+                }, 3000); // Refresh after 3 seconds
+            } catch (error) {
+                console.error('Error starting incremental sync:', error);
+                alert('Error starting sync');
+            }
+        }
+        
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
