@@ -233,11 +233,13 @@
         }
 
         // Load highlights
-        async function loadHighlights(page = 1, search = '', filters = {}) {
+        async function loadHighlights(page = 1, search = '', filters = {}, perPage = null) {
             try {
+                // Use 10 per page by default on initial load, 20 for pagination
+                const defaultPerPage = perPage || (page === 1 && search === '' && Object.keys(filters).length === 0 ? 10 : 20);
                 const params = new URLSearchParams({
                     page: page,
-                    per_page: 20,
+                    per_page: defaultPerPage,
                     ...filters
                 });
 
@@ -326,7 +328,7 @@
         // Change page
         function changePage(page) {
             currentPage = page;
-            loadHighlights(page, document.getElementById('searchInput').value, currentFilters);
+            loadHighlights(page, document.getElementById('searchInput').value, currentFilters, 20);
         }
 
         // Load books for filter
@@ -370,14 +372,14 @@
             if (hasNote) currentFilters.has_note = true;
 
             currentPage = 1;
-            loadHighlights(1, document.getElementById('searchInput').value, currentFilters);
+            loadHighlights(1, document.getElementById('searchInput').value, currentFilters, 20);
         }
 
         // Handle search
         function handleSearch(event) {
             if (event.key === 'Enter') {
                 currentPage = 1;
-                loadHighlights(1, event.target.value, currentFilters);
+                loadHighlights(1, event.target.value, currentFilters, 20);
             }
         }
 
@@ -429,7 +431,7 @@
                 setTimeout(() => {
                     loadStats();
                     if (currentView === 'highlights') {
-                        loadHighlights(currentPage, document.getElementById('searchInput').value, currentFilters);
+                        loadHighlights(currentPage, document.getElementById('searchInput').value, currentFilters, 20);
                     }
                 }, 3000); // Refresh after 3 seconds
             } catch (error) {

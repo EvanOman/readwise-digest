@@ -6,6 +6,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
+from dotenv import load_dotenv
+
 from . import (
     DigestService,
     HighlightPoller,
@@ -15,6 +17,9 @@ from . import (
     setup_logging,
 )
 from .exceptions import ReadwiseError
+
+# Load environment variables from .env file
+load_dotenv()
 
 
 def create_client(api_key: Optional[str] = None) -> ReadwiseClient:

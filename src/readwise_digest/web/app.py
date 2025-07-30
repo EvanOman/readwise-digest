@@ -43,14 +43,22 @@ def create_app() -> FastAPI:
     app.include_router(api_router, prefix="/api")
 
     # Setup static file serving for the web app
-    webapp_dir = Path(__file__).parent.parent.parent.parent / "webapp" / "dist"
-    if webapp_dir.exists():
-        app.mount("/static", StaticFiles(directory=str(webapp_dir / "assets")), name="static")
-
+    webapp_dir = Path(__file__).parent.parent.parent.parent / "webapp"
+    webapp_dist_dir = webapp_dir / "dist"
+    
+    # Check for built webapp first, then fall back to raw HTML
+    if webapp_dist_dir.exists():
+        app.mount("/static", StaticFiles(directory=str(webapp_dist_dir / "assets")), name="static")
+        index_file = webapp_dist_dir / "index.html"
+    else:
+        # Use the raw HTML file if no build directory exists
+        index_file = webapp_dir / "index.html"
+    
+    if index_file.exists():
         @app.get("/")
         async def serve_app():
             """Serve the main application."""
-            return FileResponse(str(webapp_dir / "index.html"))
+            return FileResponse(str(index_file))
 
         @app.get("/{path:path}")
         async def serve_app_routes(path: str):
@@ -60,7 +68,7 @@ def create_app() -> FastAPI:
                 return {"error": "API route not found"}
 
             # For any other route, serve the main app (SPA routing)
-            return FileResponse(str(webapp_dir / "index.html"))
+            return FileResponse(str(index_file))
 
     @app.on_event("startup")
     async def startup_event():
