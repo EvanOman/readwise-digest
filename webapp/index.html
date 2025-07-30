@@ -195,8 +195,8 @@
     </div>
 
     <script>
-        // API base URL
-        const API_BASE = 'http://localhost:8000/api';
+        // API base URL - dynamically determine based on current location
+        const API_BASE = `${window.location.protocol}//${window.location.host}/api`;
 
         // Current state
         let currentView = 'highlights';
@@ -205,10 +205,14 @@
 
         // Initialize the app
         async function init() {
-            await loadStats();
-            await loadHighlights();
-            await loadBooks();
-            await loadSources();
+            try {
+                await loadStats();
+                await loadHighlights();
+                await loadBooks();
+                await loadSources();
+            } catch (error) {
+                console.error('Error during initialization:', error);
+            }
         }
 
         // Load statistics
@@ -246,6 +250,11 @@
                 if (search) params.append('search', search);
 
                 const response = await fetch(`${API_BASE}/highlights?${params}`);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
                 const data = await response.json();
 
                 displayHighlights(data.highlights);
@@ -253,7 +262,7 @@
             } catch (error) {
                 console.error('Error loading highlights:', error);
                 document.getElementById('highlightsList').innerHTML =
-                    '<div class="text-center py-8 text-red-400">Error loading highlights</div>';
+                    '<div class="text-center py-8 text-red-400">Error loading highlights: ' + error.message + '</div>';
             }
         }
 
